@@ -2,23 +2,7 @@
 
 import random
 from turtle import *
-
-class Stack:
-    def __init__(self):
-        self.items = []
-
-    def isEmpty(self):
-        return self.items == []
-
-    def push(self, item):
-        self.items.append(item)
-
-    def pop(self):
-        return self.items.pop()
-
-    def size(self):
-        return len(self.items)
-
+from stack import Stack
 
 class Cell:
 
@@ -100,7 +84,10 @@ def genMaze(x, y, d):
         current_cell = cell_stack.pop()
         cx, cy = current_cell.getCoords()
         backtrack(cx, cy, d)
-        unvis_cells = maze.getUnvisNeighbour(current_cell)
+        if cx == x-1 and cy == y-1:
+            unvis_cells = []
+        else:
+            unvis_cells = maze.getUnvisNeighbour(current_cell)
 
         # If the current cell has any neighbours which have not been visited
         if len(unvis_cells) > 0:
@@ -109,7 +96,10 @@ def genMaze(x, y, d):
             cell_stack.push(current_cell)
 
             # Choose one of the unvisited neighbours
-            chosen_cell = unvis_cells[random.randint(0,len(unvis_cells) - 1)]
+            if ((cx == x-1 and cy == y-2) or (cx == x-2 and cy == y-1)) and maze.getCell(x-1, y-1).getVisited() == False:
+                chosen_cell = maze.getCell(x-1, y-1)
+            else:
+                chosen_cell = unvis_cells[random.randint(0,len(unvis_cells) - 1)]
             chx, chy = chosen_cell.getCoords()
             cux, cuy = current_cell.getCoords()
 
