@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+# basic stack with a few methods
 class Stack:
     def __init__(self):
         self.items = []

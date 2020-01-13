@@ -4,8 +4,10 @@ import random
 from turtle import *
 from stack import Stack
 
+# defines each cell of the maze
 class Cell:
 
+    # used when removing wall from between current cell and neighbor
     wall_pairs = {'N': 'S', 'S': 'N', 'E': 'W', 'W': 'E'}
 
     def __init__(self, x, y):
@@ -14,20 +16,21 @@ class Cell:
         self.visited = False
         self.neighbours = []
 
-    def checkWalls(self):
-        return self.walls
-
-    def removeWall(self, wall, neighbour):
+    # removes wall between current cell and neighbour cell
+    def remove_wall(self, wall, neighbour):
         self.walls[wall] = False
         neighbour.walls[Cell.wall_pairs[wall]] = False
 
-    def setVisited(self):
+    # sets visted status to true
+    def set_visited(self):
         self.visited = True
 
-    def getVisited(self):
+    # returns visited status
+    def get_visited(self):
         return self.visited
 
-    def getNeighbours(self, mx, my):
+    # returns neighbouring cells in relation to current cell
+    def get_neighbours(self, mx, my):
         if self.x > 0:
             self.neighbours.append((self.x - 1, self.y))
 
@@ -42,39 +45,39 @@ class Cell:
 
         return self.neighbours
 
-    def getCoords(self):
+    # returns current cells coordinates
+    def get_coordinates(self):
         return self.x, self.y
 
 
+# maze object for storing cells
 class Maze:
     def __init__(self, mx, my):
         self.mx, self.my = mx, my
-
         self.maze_grid = [[Cell(x, y) for y in range(self.my)] for x in range(self.mx)]
 
-    def getCell(self, x, y):
+    # returns current cell
+    def get_cell(self, x, y):
         return self.maze_grid[x][y]
 
-    def getGrid(self):
-        return self.maze_grid
-
-    def getUnvisNeighbour(self, cell):
+    # returns all unvisited neighbours of current cell
+    def get_univis_neighbor(self, cell):
         unvis_neighbours = []
-        neighbours = cell.getNeighbours(self.mx, self.my)
+        neighbours = cell.get_neighbours(self.mx, self.my)
         for i in neighbours:
             neigh_cell = self.maze_grid[i[0]][i[1]]
-            if neigh_cell.getVisited() == False:
+            if neigh_cell.get_visited() == False:
                 unvis_neighbours.append(neigh_cell)
         return unvis_neighbours
 
-
-def genMaze(x, y, d):
+# generates maze and runs backtracking algorithm
+def gen_maze(x, y, d):
     cell_stack = Stack()
     maze = Maze(x, y)
 
     # Choose the initial cell, mark it as visited and push it to the stack
-    current_cell = maze.getCell(0, 0)
-    current_cell.setVisited()
+    current_cell = maze.get_cell(0, 0)
+    current_cell.set_visited()
     cell_stack.push(current_cell)
 
     # While the stack is not empty
@@ -82,12 +85,12 @@ def genMaze(x, y, d):
 
         # Pop a cell from the stack and make it a current cell
         current_cell = cell_stack.pop()
-        cx, cy = current_cell.getCoords()
+        cx, cy = current_cell.get_coordinates()
         backtrack(cx, cy, d)
         if cx == x-1 and cy == y-1:
             unvis_cells = []
         else:
-            unvis_cells = maze.getUnvisNeighbour(current_cell)
+            unvis_cells = maze.get_univis_neighbor(current_cell)
 
         # If the current cell has any neighbours which have not been visited
         if len(unvis_cells) > 0:
@@ -96,47 +99,53 @@ def genMaze(x, y, d):
             cell_stack.push(current_cell)
 
             # Choose one of the unvisited neighbours
-            if ((cx == x-1 and cy == y-2) or (cx == x-2 and cy == y-1)) and maze.getCell(x-1, y-1).getVisited() == False:
-                chosen_cell = maze.getCell(x-1, y-1)
+            # if currently at bottom right corner, force it to be an exit
+            if ((cx == x-1 and cy == y-2) or (cx == x-2 and cy == y-1)) and maze.get_cell(x-1, y-1).get_visited() == False:
+                chosen_cell = maze.get_cell(x-1, y-1)
             else:
                 chosen_cell = unvis_cells[random.randint(0,len(unvis_cells) - 1)]
-            chx, chy = chosen_cell.getCoords()
-            cux, cuy = current_cell.getCoords()
+            chx, chy = chosen_cell.get_coordinates()
+            cux, cuy = current_cell.get_coordinates()
 
             # Remove the wall between the current cell and the chosen cell
             if chx == cux - 1:
-                current_cell.removeWall('N', chosen_cell)
-                moveNorth(d)
+                current_cell.remove_wall('N', chosen_cell)
+                move_north(d)
             elif chy == cuy - 1:
-                current_cell.removeWall('W', chosen_cell)
-                moveWest(d)
+                current_cell.remove_wall('W', chosen_cell)
+                move_west(d)
             elif chx == cux + 1:
-                current_cell.removeWall('S', chosen_cell)
-                moveSouth(d)
+                current_cell.remove_wall('S', chosen_cell)
+                move_south(d)
             else:
-                current_cell.removeWall('E', chosen_cell)
-                moveEast(d)
+                current_cell.remove_wall('E', chosen_cell)
+                move_east(d)
 
             # Mark the chosen cell as visited and push it to the stack
-            chosen_cell.setVisited()
+            chosen_cell.set_visited()
             cell_stack.push(chosen_cell)
 
-def moveWest(d):
+# sets turtle heading west
+def move_west(d):
     setheading(180)
     forward(d)
 
-def moveEast(d):
+# sets turtle heading east
+def move_east(d):
     setheading(0)
     forward(d)
 
-def moveNorth(d):
+# sets turtle heading north
+def move_north(d):
     setheading(90)
     forward(d)
 
-def moveSouth(d):
+# sets turtle heading south
+def move_south(d):
     setheading(270)
     forward(d)
 
+# if dead-end is reached then it returns the algorithm to the last cell with unvisited neighbours
 def backtrack(y, x, d):
     ty, tx = position()
     tx = int(round(tx))
@@ -144,6 +153,7 @@ def backtrack(y, x, d):
     cx = 400 - y*d
     cy = -400 + x*d
 
+    # changes turtle colour from white to blue to better visualize backtracking
     if cx != tx or ty != cy:
         color("blue")
         goto(cy,  cx)
@@ -153,6 +163,8 @@ def backtrack(y, x, d):
 
 
 if __name__ == "__main__":
+
+    # driver code
     w = int(input("Width?\n>"))
     h = int(input("Height?\n>"))
 
@@ -173,6 +185,6 @@ if __name__ == "__main__":
     goto(-400, 400)
     hideturtle()
     pendown()
-    genMaze(h, w, distance)
+    gen_maze(h, w, distance)
 
     mainloop()
